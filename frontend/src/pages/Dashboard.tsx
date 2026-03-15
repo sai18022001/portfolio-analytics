@@ -7,6 +7,51 @@ import MetricsCard from "../components/MetricsCard";
 import SectorChart from "../components/SectorChart";
 import CorrelationMatrix from "../components/CorrelationMatrix";
 
+// Full 488 S&P 500 tickers
+const SP500_TICKERS = [
+    "A", "AAPL", "ABBV", "ABNB", "ABT", "ACGL", "ACN", "ADBE", "ADI", "ADM", "ADP", "ADSK",
+    "AEE", "AEP", "AES", "AFL", "AIG", "AIZ", "AJG", "AKAM", "ALB", "ALGN", "ALL", "ALLE",
+    "AMAT", "AMD", "AME", "AMGN", "AMP", "AMT", "AMZN", "ANET", "AON", "AOS", "APA", "APD",
+    "APH", "APP", "APTV", "ARE", "ATO", "AVB", "AVGO", "AVY", "AWK", "AXP", "AZO", "BA",
+    "BAC", "BALL", "BAX", "BBWI", "BBY", "BDX", "BEN", "BG", "BIIB", "BIO", "BK",
+    "BKNG", "BKR", "BLDR", "BLK", "BMY", "BR", "BRK-B", "BRO", "BSX", "BWA", "BX", "BXP",
+    "C", "CAG", "CAH", "CARR", "CAT", "CB", "CBOE", "CBRE", "CCI", "CCL", "CDNS", "CDW",
+    "CE", "CEG", "CF", "CFG", "CHD", "CHRW", "CHTR", "CI", "CINF", "CL", "CLX", "CMA",
+    "CMCSA", "CME", "CMG", "CMI", "CMS", "CNC", "CNP", "COF", "COHR", "COO", "COP", "COR",
+    "COST", "CPAY", "CPB", "CPRT", "CPT", "CRM", "CRL", "CRWD", "CSCO", "CSGP", "CSX",
+    "CTAS", "CTRA", "CTSH", "CTVA", "CVS", "CVX", "CZR", "D", "DAL", "DASH", "DAY", "DD",
+    "DE", "DECK", "DG", "DGX", "DHI", "DHR", "DIS", "DLR", "DLTR", "DOV", "DOW", "DPZ",
+    "DRI", "DTE", "DUK", "DVA", "DVN", "DXCM", "EA", "EBAY", "ECL", "ED", "EFX", "EIX",
+    "EL", "ELV", "EMN", "EMR", "ENPH", "EOG", "EPAM", "EQIX", "EQR", "EQT", "ES", "ESS",
+    "ETN", "ETR", "EVRG", "EW", "EXC", "EXPD", "EXPE", "EXR", "F", "FANG", "FAST", "FCX",
+    "FDS", "FDX", "FE", "FFIV", "FICO", "FIS", "FITB", "FMC", "FOX", "FOXA", "FRT",
+    "FSLR", "FTNT", "FTV", "GD", "GE", "GEHC", "GEN", "GEV", "GILD", "GIS", "GL", "GLW",
+    "GM", "GNRC", "GOOG", "GOOGL", "GPC", "GPN", "GRMN", "GS", "GWW", "HAL", "HAS", "HBAN",
+    "HCA", "HD", "HIG", "HII", "HLT", "HOLX", "HON", "HPE", "HPQ", "HRL", "HSIC", "HST",
+    "HSY", "HUM", "HWM", "IBM", "ICE", "IDXX", "IEX", "IFF", "ILMN", "INCY", "INTC", "INTU",
+    "INVH", "IQV", "IR", "IRM", "ISRG", "IT", "ITW", "IVZ", "J", "JBHT", "JBL", "JCI",
+    "JKHY", "JNJ", "JPM", "KDP", "KEY", "KEYS", "KHC", "KIM", "KKR", "KLAC", "KMB", "KMI",
+    "KMX", "KO", "KR", "KVUE", "L", "LDOS", "LEN", "LH", "LHX", "LIN", "LITE", "LKQ", "LLY",
+    "LMT", "LNT", "LOW", "LRCX", "LULU", "LUV", "LW", "LYB", "LYV", "MA", "MAA", "MAR",
+    "MAS", "MCD", "MCHP", "MCK", "MCO", "MDLZ", "MDT", "MET", "META", "MGM", "MHK", "MKC",
+    "MKTX", "MLM", "MMC", "MMM", "MNST", "MO", "MOH", "MOS", "MPC", "MPWR", "MRK", "MRNA",
+    "MS", "MSCI", "MSFT", "MSI", "MTB", "MTCH", "MTD", "MU", "NDAQ", "NDSN", "NEE", "NEM",
+    "NFLX", "NI", "NKE", "NOC", "NOW", "NRG", "NSC", "NTAP", "NTRS", "NUE", "NVDA", "NVR",
+    "NWL", "NWS", "NWSA", "NXPI", "O", "ODFL", "OKE", "OMC", "ON", "ORCL", "ORLY", "OTIS",
+    "OXY", "PANW", "PAYC", "PAYX", "PCAR", "PCG", "PEG", "PEP", "PFE", "PFG", "PG", "PGR",
+    "PH", "PHM", "PKG", "PLD", "PLTR", "PM", "PNC", "PNR", "PNW", "PODD", "POOL", "PPG",
+    "PPL", "PRU", "PSA", "PSX", "PTC", "PYPL", "QCOM", "QRVO", "RCL", "REG", "REGN", "RF",
+    "RHI", "RJF", "RL", "RMD", "ROK", "ROL", "ROP", "ROST", "RSG", "RTX", "RVTY", "SATS",
+    "SBAC", "SBUX", "SCHW", "SHW", "SJM", "SLB", "SNA", "SNPS", "SO", "SOLV", "SPG", "SPGI",
+    "SRE", "STE", "STLD", "STT", "STX", "STZ", "SWK", "SWKS", "SYF", "SYK", "SYY", "T",
+    "TAP", "TDG", "TDY", "TECH", "TEL", "TER", "TFC", "TFX", "TGT", "TJX", "TMO",
+    "TMUS", "TPR", "TRGP", "TROW", "TRU", "TRV", "TSCO", "TSLA", "TSN", "TT", "TTWO", "TXN",
+    "TXT", "TYL", "UAL", "UBER", "UDR", "UHS", "ULTA", "UNH", "UNP", "UPS", "URI", "USB",
+    "V", "VFC", "VICI", "VLO", "VLTO", "VMC", "VRSK", "VRSN", "VRT", "VRTX", "VTR", "VZ",
+    "WAB", "WAT", "WBD", "WDC", "WEC", "WELL", "WFC", "WHR", "WM", "WMB", "WMT", "WRB",
+    "WST", "WTW", "WY", "WYNN", "XEL", "XOM", "XYL", "YUM", "ZBH", "ZBRA", "ZTS"
+];
+
 export default function Dashboard() {
   const [holdings, setHoldings] = useState<Holding[]>([
     { ticker: "AAPL", weight: 0.3 },
@@ -21,6 +66,19 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   // Called when user clicks "Analyze Portfolio"
+  function loadSP500() {
+    const weight = parseFloat((1.0 / SP500_TICKERS.length).toFixed(6));
+    const newHoldings: Holding[] = SP500_TICKERS.map((ticker, index) => {
+        // Fix floating point on last ticker so weights sum to exactly 1.0
+        const isLast = index === SP500_TICKERS.length - 1;
+        const adjustedWeight = isLast
+            ? parseFloat((1.0 - weight * (SP500_TICKERS.length - 1)).toFixed(6))
+            : weight;
+        return { ticker, weight: adjustedWeight };
+    });
+    setHoldings(newHoldings);
+  }
+
   async function handleAnalyze() {
     setLoading(true);
     setError(null);
@@ -116,11 +174,23 @@ export default function Dashboard() {
             + Add Stock
           </button>
           <button
+            onClick={loadSP500}
+            style={{ padding: "10px 20px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", cursor: "pointer", fontSize: "14px", color: "#1d4ed8" }}
+          >
+            Load S&P 500 (488 stocks)
+          </button>
+          <button
             onClick={handleAnalyze}
             disabled={loading}
             style={{ padding: "10px 24px", background: "#6366f1", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}
           >
-            {loading ? "Analyzing..." : "Analyze Portfolio"}
+            Analyze Portfolio
+            {loading && (
+                <p style={{ color: "#6b7280", fontSize: "13px", marginTop: "10px" }}>
+                      First request fetches live data for all instruments (~20s). 
+                      Repeat requests serve from Redis cache (~200ms).
+                </p>
+            )}
           </button>
         </div>
 
