@@ -34,7 +34,7 @@ A full-stack web application for real-time portfolio risk analytics. Input a sto
 - **Interactive dashboard** — built with React + TypeScript + Recharts
 - **Fully containerized** — runs with a single `docker-compose up` command
 - **CI/CD pipeline** — automated testing and build on every GitHub push -->
-![Dashboard Screenshot](./assets/portfolio.png)
+![Dashboard Screenshot](./docs/portfolio.png)
 
 ---
 
