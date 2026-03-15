@@ -23,18 +23,18 @@ A full-stack web application for real-time portfolio risk analytics. Input a sto
 
 ---
 
-<!-- ## Features
+## Features
+![Dashboard Screenshot](./docs/portfolio.png)
 
 - **Live market data** — fetches real-time prices from Yahoo Finance
 - **Risk metrics** — Sharpe ratio, volatility, max drawdown, annual return
 - **Sector exposure** — pie chart breakdown of portfolio by industry
 - **Correlation matrix** — color-coded table showing how holdings move together
-- **Redis caching** — ~70% reduction in repeated query response time (sub-200ms)
+- **Validated at scale** — 488 instruments, cache miss: 20.6s, cache hit: 191ms, speed improvement: 99.1%
 - **Background refresh** — Celery worker refreshes prices every hour automatically
 - **Interactive dashboard** — built with React + TypeScript + Recharts
 - **Fully containerized** — runs with a single `docker-compose up` command
-- **CI/CD pipeline** — automated testing and build on every GitHub push -->
-![Dashboard Screenshot](./docs/portfolio.png)
+- **CI/CD pipeline** — automated testing and build on every GitHub push
 
 ---
 
