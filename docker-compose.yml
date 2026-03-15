@@ -1,0 +1,68 @@
+# docker-compose.yml — runs ALL services together with one command
+#
+# Without this, you'd have to manually start:
+# 1. PostgreSQL server
+# 2. Redis server  
+# 3. FastAPI backend
+# 4. Celery worker
+# 5. React frontend
+#
+# With docker-compose, you just run: docker-compose up
+# and all 5 services start together, connected to each other.
+
+version: "3.9"
+
+services:
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine        # official PostgreSQL image
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: portfolio_db
+    ports:
+      - "5432:5432"                  # expose to your machine for debugging
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # persist data between restarts
+
+  # Redis cache
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  # FastAPI backend
+  backend:
+    build: ./backend                 # build using backend/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/portfolio_db
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres                     # wait for postgres to start first
+      - redis                        # wait for redis to start first
+    volumes:
+      - ./backend:/app               # mount code so changes reflect instantly
+
+  # Celery worker (background tasks)
+  celery:
+    build: ./backend                 # same image as backend
+    command: celery -A app.tasks.celery_worker worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/portfolio_db
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+
+  # React frontend
+  frontend:
+    build: ./frontend                # build using frontend/Dockerfile
+    ports:
+      - "3000:80"                    # nginx inside serves on 80, we expose as 3000
+
+# Named volumes — Docker manages these, data persists even if containers stop
+volumes:
+  postgres_data:

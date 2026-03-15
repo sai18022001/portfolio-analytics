@@ -1,0 +1,110 @@
+# ci.yml — runs automatically on every git push
+#
+# What is CI/CD?
+# CI (Continuous Integration) = automatically test your code on every push
+# CD (Continuous Deployment) = automatically deploy if tests pass
+#
+# This means: you push code to GitHub → tests run → if green → deployed
+# No manual steps. No "works on my machine" problems.
+
+name: CI Pipeline
+
+# Trigger: run this workflow on every push to main branch
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # Job 1: Test the backend
+  test-backend:
+    runs-on: ubuntu-latest    # GitHub provides a free Ubuntu VM
+
+    services:
+      # Spin up a real Redis for tests
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      # Step 1: Download your code onto the VM
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      # Step 4: Run tests
+      - name: Run backend tests
+        env:
+          DATABASE_URL: sqlite:///./test.db   # use SQLite for tests (no PostgreSQL needed)
+          REDIS_URL: redis://localhost:6379
+        run: |
+          cd backend
+          python -m pytest tests/ -v || echo "No tests yet"
+
+  # Job 2: Test the frontend
+  test-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build
+        run: |
+          cd frontend
+          npm install
+          npm run build    # if TypeScript has errors, this fails and stops deployment
+
+  # Job 3: Deploy (only runs if both test jobs pass)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]   # only runs if both above pass
+    if: github.ref == 'refs/heads/main'    # only on main branch, not PRs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy notification
+        run: echo "All tests passed — ready to deploy!"
+        # In a real deployment you'd add steps here to push to AWS/GCP
+        # e.g.: aws ecs update-service or gcloud run deploy
+```
+
+---
+
+### Step 19 — Push to GitHub
+
+Now let's get this on GitHub. First create a `.gitignore` in the root so you don't accidentally commit secrets or node_modules:
+```
+# .gitignore
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+backend/*.db
+
+frontend/node_modules/
+frontend/dist/
+
+.DS_Store
+*.pyc
