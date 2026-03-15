@@ -3,32 +3,33 @@
 import yfinance as yf
 import pandas as pd
 from typing import List
+import time
 
-def fetch_prices(tickers: List[str], period: str = "1y") -> pd.DataFrame:
+def fetch_prices(tickers: list, period: str = "1y") -> pd.DataFrame:
     """
-    Fetch historical closing prices for a list of stock tickers.
-
-    Args:
-        tickers: e.g. ["AAPL", "TSLA", "GOOGL"]
-        period:  how far back to go — "1y" = 1 year, "6mo", "2y", etc.
-
-    Returns:
-        A DataFrame where:
-        - each ROW is a date
-        - each COLUMN is a ticker
-        - each VALUE is the closing price on that date
+    Fetch prices in batches of 50 to avoid Yahoo Finance rate limiting.
+    Supports 500+ tickers by splitting into multiple requests.
     """
-    
-    data = yf.download(tickers, period=period, auto_adjust=True, progress=False)
+    BATCH_SIZE = 50
+    all_prices = []
 
-    prices = data["Close"]
+    # Split tickers into chunks of 50
+    batches = [tickers[i:i+BATCH_SIZE] for i in range(0, len(tickers), BATCH_SIZE)]
 
-    if isinstance(prices, pd.Series):
-        prices = prices.to_frame(name=tickers[0])
+    for batch in batches:
+        data = yf.download(batch, period=period, auto_adjust=True, progress=False)
+        prices = data["Close"]
+        if isinstance(prices, pd.Series):
+            prices = prices.to_frame(name=batch[0])
+        all_prices.append(prices)
 
-    prices = prices.dropna(how="all")
+        # Be polite to Yahoo Finance — pause between batches
+        if len(batches) > 1:
+            time.sleep(0.5)
 
-    return prices
+    # Merge all batches into one DataFrame by date
+    combined = pd.concat(all_prices, axis=1)
+    return combined.dropna(how="all")
 
 
 def fetch_current_price(ticker: str) -> float:
